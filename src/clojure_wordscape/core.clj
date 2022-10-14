@@ -56,14 +56,15 @@ seq first-word
       (make-riddle num-words num-letters))))
 
 (defn print-riddle [riddle-state]
-  (let [riddle (:riddle riddle-state)
-        words-found (:words-found riddle-state)]
-    ((println "Letters: " (riddle :letters))
-     (println "Words: ")
-     (doseq [word (riddle :words)]
-       (if (words-found word)
-         (println word)
-         (println (repeat (count word) "_")))))))
+  (let [riddle (riddle-state :riddle)
+        words-found (riddle-state :words-found)]
+    (println "Letters: " (riddle :letters))
+    (println "Words: ")
+    (doseq [word (riddle :words)]
+      (if (words-found word)
+        (println word)
+        (println (repeat (count word) "_"))))))
+
 
 (def riddle (make-riddle 10 5))
 
@@ -79,15 +80,16 @@ seq first-word
         guess (clojure.string/upper-case guess)]
     (if (contains? (set (riddle :words)) guess)
       (if (contains? words-found guess)
-        (println "You already found that word!")
+        (do
+          (println "You already found that word!")
+          riddle-state)
         (do
           (println "You found a word!")
           {:riddle riddle,
            :words-found (conj words-found guess)}))
-      (println "That's not a word!"))))
-
-(def step1 (eval-guess riddle-state "sand"))
-(print-riddle (:riddle step1))
+      (do
+        (println "That's not a word!")
+        riddle-state))))
 
 ;; repeatedly read a word from stdin until all are found
 (defn play-riddle [riddle-state]
@@ -96,42 +98,7 @@ seq first-word
     (if (== (count words-found) (count (riddle :words)))
       (println "You found all the words!")
       (do
-        (print-riddle riddle)
+        (print-riddle riddle-state)
         (play-riddle (eval-guess riddle-state (read-line)))))))
 
 (play-riddle riddle-state)
-
-;; (str riddle)
-;; (print-riddle riddle)
-
-
-;; (defn root [{:keys [showing]}]
-;;   {:fx/type :stage
-;;    :showing showing
-;;    :scene {:fx/type :scene
-;;            :root {:fx/type :v-box
-;;                   :padding 50
-;;                   :children [{:fx/type :button
-;;                               :text "close"
-;;                               :on-action (fn [_]
-;;                                            (renderer {:fx/type root
-;;                                                       :showing false}))}]}}})
-
-
-;; (renderer {:fx/type root
-;;            :showing true})
-
-;; (native!)
-;; (def f
-;;   (->
-;;    (frame :title "Wordscape")
-;;    pack!
-;;    show!))
-
-;; (defn display [content]
-;;   (config! f :content content)
-;;   content)
-
-;; (display (border-panel
-;;           :center (label :font "ARIAL-REGULAR-24", :text "Hello World!", :h-text-position :center)))
-
